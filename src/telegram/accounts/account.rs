@@ -1,17 +1,20 @@
-use super::TelegramConfig;
 use grammers_client::{types::Dialog, Client, Config};
 use grammers_session::Session;
 use std::io::{stdin, stdout, Write};
 
+use super::TelegramConfig;
+
 /// Refers to Telegram Chats/Channels/Groups
+#[derive(Clone)]
 pub struct TelegramGroup {
-    telegram_id: String,
-    name: String,
+    pub telegram_id: i64,
+    pub name: String,
 }
 
+#[derive(Clone)]
 pub struct TelegramAccount {
-    client: Client,
-    tracked_groups: Vec<TelegramGroup>,
+    pub client: Client,
+    pub tracked_groups: Vec<TelegramGroup>,
 }
 
 impl TelegramAccount {
@@ -24,7 +27,7 @@ impl TelegramAccount {
             }
         };
 
-        let tracked_groups = match Self::init_tracked_groups(&config.chat_ids[..], &client).await {
+        let tracked_groups = match Self::init_tracked_groups(&config.chat_ids, &client).await {
             Ok(groups) => groups,
             Err(err) => {
                 eprintln!("Could not initialize tracked_groups: {}", err);
@@ -61,7 +64,7 @@ impl TelegramAccount {
             let code = Self::prompt("Enter the code you received: ");
 
             client.sign_in(&request_result, &code).await?;
-            client.session().save_to_file(session_name)?; // Use `session_name` directly if it's of type `&str`. Otherwise, `.to_string()` or `.as_str()`
+            client.session().save_to_file(session_name)?;
         }
 
         Ok(client)
@@ -96,7 +99,7 @@ impl TelegramAccount {
             .map(|dialog| {
                 let chat = dialog.chat();
                 TelegramGroup {
-                    telegram_id: format!("{}", chat.id()),
+                    telegram_id: chat.id(),
                     name: chat.name().to_string(),
                 }
             })

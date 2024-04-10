@@ -1,5 +1,12 @@
+# Rust
 /target
 
+# Env
 .env
 *.env
+
+# Telegram 
 *.session
+
+# OS 
+.DS_Store
