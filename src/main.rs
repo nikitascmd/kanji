@@ -1,17 +1,28 @@
-use dotenv::dotenv;
-use serde::Deserialize;
-use solana_account_decoder::{
-    parse_account_data::{self, parse_account_data},
-    parse_token::parse_token,
-};
-use solana_client::{self, rpc_client::RpcClient};
-use solana_sdk::{account::Account, entrypoint::deserialize, pubkey::Pubkey};
-use std::{env, str::FromStr};
+use grammers_client::Update;
+use telegram::{DefaultParser, TelegramAccount, TelegramConfig};
+
+mod telegram;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    dotenv().ok();
+    let telegram_config = TelegramConfig::new("KEKI");
+    let telegram_account = TelegramAccount::new(telegram_config).await;
+    let telegram_parser = DefaultParser::new(telegram_account);
 
+    while let Some(update) = telegram_account.client.next_update().await? {
+        match update {
+            Update::NewMessage(mut message) if !message.outgoing() => {
+                if let Some(parse_result) = telegram_parser.parse(message).await? {
+                    println!("parse_result: {:?}", parse_result);
+                } else {
+                    continue;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /*
     let solana_rpc_url = env::var("SOLANA_RPC_URL").unwrap();
     let client = RpcClient::new(solana_rpc_url);
 
@@ -24,6 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let decoded_data = parse_token(&acc.data, None).unwrap();
     print!("decoded_data: {:?}", decoded_data);
+    */
 
     Ok(())
 }

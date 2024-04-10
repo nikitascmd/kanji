@@ -11,6 +11,7 @@ pub struct DexscreenerPairsResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DexscreenerPair {
     pub chain_id: String,
     pub dex_id: String,
@@ -46,10 +47,10 @@ pub struct DexscreenerQuoteToken {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DexscreenerTransactions {
-    pub m5: TransactionDetail,
-    pub h1: TransactionDetail,
-    pub h6: TransactionDetail,
-    pub h24: TransactionDetail,
+    pub m5: DexscreenerTransactionDetail,
+    pub h1: DexscreenerTransactionDetail,
+    pub h6: DexscreenerTransactionDetail,
+    pub h24: DexscreenerTransactionDetail,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

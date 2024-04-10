@@ -1,39 +1,31 @@
 use grammers_client::{types::Dialog, Client, Config};
 use grammers_session::Session;
-use std::io::{stdin, stdout, Write};
+use std::{
+    collections::HashMap,
+    io::{stdin, stdout, Write},
+};
 
 use super::TelegramConfig;
 
 /// Refers to Telegram Chats/Channels/Groups
 #[derive(Clone)]
 pub struct TelegramGroup {
-    pub telegram_id: i64,
+    pub telegram_id: i64, // gramme.rs has telegram group ids as i64
     pub name: String,
 }
 
 #[derive(Clone)]
 pub struct TelegramAccount {
     pub client: Client,
-    pub tracked_groups: Vec<TelegramGroup>,
+    pub tracked_groups: HashMap<i64, TelegramGroup>,
 }
 
 impl TelegramAccount {
     pub async fn new(config: TelegramConfig) -> Self {
-        let client = match Self::init_client(&config).await {
-            Ok(client) => client,
-            Err(err) => {
-                eprintln!("Could not initialize Telegram Client: {}", err);
-                panic!("Intentional panic due to Telegram Client initialization error");
-            }
-        };
-
-        let tracked_groups = match Self::init_tracked_groups(&config.chat_ids, &client).await {
-            Ok(groups) => groups,
-            Err(err) => {
-                eprintln!("Could not initialize tracked_groups: {}", err);
-                panic!("Intentional panic due to tracked_groups initialization error");
-            }
-        };
+        let client = Self::init_client(&config).await.unwrap();
+        let tracked_groups = Self::init_tracked_groups(&config.chat_ids, &client)
+            .await
+            .unwrap();
 
         Self {
             client,
@@ -81,7 +73,7 @@ impl TelegramAccount {
     pub async fn init_tracked_groups(
         chat_ids: &[i64],
         client: &Client,
-    ) -> Result<Vec<TelegramGroup>, Box<dyn std::error::Error>> {
+    ) -> Result<HashMap<i64, TelegramGroup>, Box<dyn std::error::Error>> {
         let mut dialogs_iterator = client.iter_dialogs();
         let mut dialogs_to_track: Vec<Dialog> = Vec::new();
 
@@ -94,14 +86,16 @@ impl TelegramAccount {
         }
 
         // 2. Transform the tracked dialogs into `TelegramGroup` instances
-        let tracked_groups: Vec<TelegramGroup> = dialogs_to_track
+        let tracked_groups: HashMap<i64, TelegramGroup> = dialogs_to_track
             .into_iter()
             .map(|dialog| {
                 let chat = dialog.chat();
-                TelegramGroup {
-                    telegram_id: chat.id(),
+                let chat_id = chat.id();
+                let telegram_group = TelegramGroup {
+                    telegram_id: chat_id,
                     name: chat.name().to_string(),
-                }
+                };
+                (chat_id, telegram_group)
             })
             .collect();
 

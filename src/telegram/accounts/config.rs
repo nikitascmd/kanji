@@ -11,7 +11,7 @@ pub struct TelegramConfig {
 }
 
 impl TelegramConfig {
-    pub fn load_from_env(prefix: String) -> Self {
+    pub fn new(prefix: &str) -> Self {
         dotenv().ok();
 
         Self {
@@ -56,7 +56,7 @@ pub fn load_telegram_configs() -> Result<Vec<TelegramConfig>, Error> {
         .unwrap()
         .to_uppercase()
         .split(',')
-        .map(|s| TelegramConfig::load_from_env(s.trim().to_string()))
+        .map(|s| TelegramConfig::new(s.trim()))
         .collect();
 
     if prefixes.is_empty() {
