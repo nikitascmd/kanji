@@ -7,11 +7,11 @@ mod telegram;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let telegram_config = TelegramConfig::new("KEKI");
     let telegram_account = TelegramAccount::new(telegram_config).await;
-    let telegram_parser = DefaultParser::new(telegram_account);
+    let telegram_parser = DefaultParser::new(telegram_account.clone());
 
     while let Some(update) = telegram_account.client.next_update().await? {
         match update {
-            Update::NewMessage(mut message) if !message.outgoing() => {
+            Update::NewMessage(message) if !message.outgoing() => {
                 if let Some(parse_result) = telegram_parser.parse(message).await? {
                     println!("parse_result: {:?}", parse_result);
                 } else {

@@ -1,5 +1,4 @@
 use dotenv::dotenv;
-use serde::de::value::Error;
 use std::env;
 
 #[derive(Debug)]
@@ -39,7 +38,7 @@ impl TelegramConfig {
             let trimmed_id = id.trim();
             let parsed_id = match trimmed_id.parse::<i64>() {
                 Ok(id) => id,
-                Err(err) => {
+                Err(_) => {
                     eprintln!("Could not convert string to i64 for chat id: {}", id.trim());
                     panic!("Intentional panick due to error");
                 }
@@ -51,6 +50,7 @@ impl TelegramConfig {
     }
 }
 
+/*
 pub fn load_telegram_configs() -> Result<Vec<TelegramConfig>, Error> {
     let prefixes: Vec<TelegramConfig> = env::var("PREFIXES")
         .unwrap()
@@ -65,3 +65,4 @@ pub fn load_telegram_configs() -> Result<Vec<TelegramConfig>, Error> {
 
     Ok(prefixes)
 }
+*/
