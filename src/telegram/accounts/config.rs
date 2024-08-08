@@ -6,7 +6,7 @@ pub struct TelegramConfig {
     pub api_id: i32,
     pub api_hash: String,
     pub session_name: String,
-    pub chat_ids: Vec<i64>,
+    pub tracked_chat_ids: Vec<i64>,
 }
 
 impl TelegramConfig {
@@ -19,12 +19,12 @@ impl TelegramConfig {
                 .parse()
                 .unwrap(),
             api_hash: env::var(format!("{}_API_HASH", prefix)).unwrap(),
-            session_name: format!("{}.{}", prefix, "session"),
-            chat_ids: Self::load_chat_ids(&format!("{}_CHAT_IDS", prefix)),
+            session_name: format!("{}.{}", prefix.to_lowercase(), "session"),
+            tracked_chat_ids: Self::load_tracked_chat_ids(&format!("{}_TRACKED_CHAT_IDS", prefix)),
         }
     }
 
-    fn load_chat_ids(env_var: &str) -> Vec<i64> {
+    fn load_tracked_chat_ids(env_var: &str) -> Vec<i64> {
         let comma_separated_ids = match env::var(env_var) {
             Ok(ids) => ids,
             Err(err) => {
@@ -33,20 +33,19 @@ impl TelegramConfig {
             }
         };
 
-        let mut chat_ids: Vec<i64> = Vec::new();
-        for id in comma_separated_ids.split(", ") {
+        let mut tracked_chat_ids: Vec<i64> = Vec::new();
+        for id in comma_separated_ids.split(",") {
             let trimmed_id = id.trim();
             let parsed_id = match trimmed_id.parse::<i64>() {
                 Ok(id) => id,
                 Err(_) => {
-                    eprintln!("Could not convert string to i64 for chat id: {}", id.trim());
-                    panic!("Intentional panick due to error");
+                    panic!("Could not convert string to i64 for chat id: {}", id.trim());
                 }
             };
-            chat_ids.push(parsed_id);
+            tracked_chat_ids.push(parsed_id);
         }
 
-        chat_ids
+        tracked_chat_ids
     }
 }
 

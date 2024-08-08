@@ -1,26 +1,34 @@
 use grammers_client::Update;
+use std::any::type_name;
 use telegram::{DefaultParser, TelegramAccount, TelegramConfig};
 
 mod telegram;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("lol");
+
     let telegram_config = TelegramConfig::new("KEKI");
     let telegram_account = TelegramAccount::new(telegram_config).await;
     let telegram_parser = DefaultParser::new(telegram_account.clone());
 
-    while let Some(update) = telegram_account.client.next_update().await? {
-        match update {
-            Update::NewMessage(message) if !message.outgoing() => {
-                if let Some(parse_result) = telegram_parser.parse(message).await? {
-                    println!("parse_result: {:?}", parse_result);
-                } else {
-                    continue;
-                }
-            }
-            _ => {}
-        }
-    }
+    // let chat =
+    // let me = telegram_account.client.iter_messages().await?;
+    // println!("{:?}", me);
+    // println!("{:?}", type_of(&me));
+
+    // while let Some(update) = telegram_account.client.next_update().await? {
+    //     match update {
+    //         Update::NewMessage(message) if !message.outgoing() => {
+    //             if let Some(parse_result) = telegram_parser.parse(message).await? {
+    //                 println!("parse_result: {:?}", parse_result);
+    //             } else {
+    //                 continue;
+    //             }
+    //         }
+    //         _ => {}
+    //     }
+    // }
 
     /*
     let solana_rpc_url = env::var("SOLANA_RPC_URL").unwrap();
@@ -38,4 +46,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     */
 
     Ok(())
+}
+
+fn type_of<T>(_: &T) -> &'static str {
+    type_name::<T>()
 }

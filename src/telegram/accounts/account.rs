@@ -1,4 +1,7 @@
-use grammers_client::{types::Dialog, Client, Config};
+use grammers_client::{
+    types::{Chat, Dialog},
+    Client, Config,
+};
 use grammers_session::Session;
 use std::{
     collections::HashMap,
@@ -12,6 +15,7 @@ use super::TelegramConfig;
 pub struct TelegramGroup {
     pub telegram_id: i64, // gramme.rs has telegram group ids as i64
     pub name: String,
+    pub access_hash: Option<i64>,
 }
 
 #[derive(Clone)]
@@ -23,7 +27,7 @@ pub struct TelegramAccount {
 impl TelegramAccount {
     pub async fn new(config: TelegramConfig) -> Self {
         let client = Self::init_client(&config).await.unwrap();
-        let tracked_groups = Self::init_tracked_groups(&config.chat_ids, &client)
+        let tracked_groups = Self::init_tracked_groups(&config.tracked_chat_ids, &client)
             .await
             .unwrap();
 
@@ -77,10 +81,9 @@ impl TelegramAccount {
         let mut dialogs_iterator = client.iter_dialogs();
         let mut dialogs_to_track: Vec<Dialog> = Vec::new();
 
-        // 1. Iterate over dialogs and collect those that match the chat_ids
-        // No need for performance efficiency since it's only run on start and `chat_ids` will be small size
         while let Some(dialog) = dialogs_iterator.next().await? {
-            if chat_ids.contains(&dialog.chat().id()) {
+            let chat = dialog.chat();
+            if chat_ids.contains(&chat.id()) {
                 dialogs_to_track.push(dialog);
             }
         }
@@ -94,6 +97,7 @@ impl TelegramAccount {
                 let telegram_group = TelegramGroup {
                     telegram_id: chat_id,
                     name: chat.name().to_string(),
+                    access_hash: chat.pack().access_hash,
                 };
                 (chat_id, telegram_group)
             })
